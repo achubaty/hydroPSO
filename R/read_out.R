@@ -6,7 +6,7 @@
 # Distributed under GPL 2 or later
 
 ################################################################################
-#                            'read_out'                                        # 
+#                            'read_out'                                        #
 ################################################################################
 # Purpose: This function reads the values of the objective function / model for#
 #          each particle and iteration                                         #
@@ -21,13 +21,13 @@
 #          -) model.obs   : numeric with the observed values used for hydroPSO,#
 #                           or NA if they were not provided                    #
 ################################################################################
-# Author : Mauricio Zambrano-Bigiarini & Rodrigo Rojas                         #  
+# Author : Mauricio Zambrano-Bigiarini & Rodrigo Rojas                         #
 # Started: 08-Nov-2011,                                                        #
-# Updates: 27-Jan-2012 ; 02-Feb-2012 ; 15-Feb-2012 ; 15-Feb-2012 ; 22-Feb-2012 #  
-#          23-Mar-2012 ; 06-Dec-2012                                           # 
-#          29-May-2013                                                         #  
-#          09-Abr-2014                                                         # 
-#          30-Jul-2015                                                         # 
+# Updates: 27-Jan-2012 ; 02-Feb-2012 ; 15-Feb-2012 ; 15-Feb-2012 ; 22-Feb-2012 #
+#          23-Mar-2012 ; 06-Dec-2012                                           #
+#          29-May-2013                                                         #
+#          09-Abr-2014                                                         #
+#          30-Jul-2015                                                         #
 #          28-Feb-2020 ; 07-Mar-2020 ; 12-Mar-2020                             #
 ################################################################################
 # Columns in 'of_out' are:
@@ -36,64 +36,66 @@
 # GoF          : numeric, with the goodness of fit value for each particle and iteration
 # Model_Output : numeric vector (one or more values for each row), with the model output for each particle and iteration
 
-read_out <- function(file="Model_out.txt", 
-                     modelout.cols=NULL, 
-                     nsim=NULL,
-                     obs, 
-                     MinMax=NULL, 
-                     beh.thr=NA, 
-                     verbose=TRUE,
+read_out <- function(file = "Model_out.txt",
+                     modelout.cols = NULL,
+                     nsim = NULL,
+                     obs,
+                     MinMax = NULL,
+                     beh.thr = NA,
+                     verbose = TRUE,
                      #### Plotting arguments ####
-                     plot=TRUE,
-                     ptype=c("corr", "ts", "ecdf", "quant2ecdf"), 
-                     ftype="dm", # OPTIONAL, only used when 'ptype=="ts"'.See [hydroGOF]{ggof}
-                     FUN=mean,   # OPTIONAL, only used when 'ptype=="ts"'.See [hydroGOF]{ggof}                     
+                     plot = TRUE,
+                     ptype = c("corr", "ts", "ecdf", "quant2ecdf"),
+                     ftype = "dm", # OPTIONAL, only used when 'ptype=="ts"'.See [hydroGOF]{ggof}
+                     FUN = mean, # OPTIONAL, only used when 'ptype=="ts"'.See [hydroGOF]{ggof}
                      #### OPTIONS for ptype="quant2ecdf' #####
-                     weights=NULL,
-                     byrow=TRUE, 
-                     quantiles.desired= c(0.05, 0.5, 0.95),
-                     quantiles.labels= c("Q5", "Q50", "Q95"),
-                     main=NULL,
-                     ylab="Probability",
-                     col="blue",
-                     leg.cex=1.2,
-                     leg.pos="bottomright",
-                     cex.axis=1.2, 
-                     cex.main=1.2, 
-                     cex.lab=1.2,                     
-                     #### PNG options ### 
-                     do.png=FALSE, png.width=1500, png.height=900, png.res=90,
-                     png.fname="ModelOut_vs_Obs.png" ) {                         
-                         
-  
+                     weights = NULL,
+                     byrow = TRUE,
+                     quantiles.desired = c(0.05, 0.5, 0.95),
+                     quantiles.labels = c("Q5", "Q50", "Q95"),
+                     main = NULL,
+                     ylab = "Probability",
+                     col = "blue",
+                     leg.cex = 1.2,
+                     leg.pos = "bottomright",
+                     cex.axis = 1.2,
+                     cex.main = 1.2,
+                     cex.lab = 1.2,
+                     #### PNG options ###
+                     do.png = FALSE, png.width = 1500, png.height = 900, png.res = 90,
+                     png.fname = "ModelOut_vs_Obs.png") {
+
+
   ##############################################################################
   # 1)                            Checkings                                    #
   ##############################################################################
   # Checking that 'file' exists
-  if ( !file.exists(file) )
-     stop( "Invalid argument value: The file '", basename(file), "' doesn't exist !!")
+  if (!file.exists(file)) {
+    stop("Invalid argument value: The file '", basename(file), "' doesn't exist !!")
+  }
 
   # Checking 'MinMax'
-  if ( !is.null(MinMax) ) {
-     if ( !(MinMax %in% c("min", "max")) )
-        stop("Invalid argument: 'MinMax' must be in c('min', 'max')")
+  if (!is.null(MinMax)) {
+    if (!(MinMax %in% c("min", "max"))) {
+      stop("Invalid argument: 'MinMax' must be in c('min', 'max')")
+    }
   } else { # MinMax was not provided: it is read from the output 'PSO_logfile.txt' file
-           # It assumes that 'PSO_logfile.txt' is located in the same directory than the 'Model_out.txt' file
-      PSOlog <- read.table(file="PSO_logfile.txt", skip=9, nrows=1)
-      MinMax <- as.character(PSOlog[1, 3])
-      if (verbose) message("[ 'MinMax' was read from the 'PSO_logfile.txt' file, and set to '", MinMax, "' ]")
-    } # ELSE end
+    # It assumes that 'PSO_logfile.txt' is located in the same directory than the 'Model_out.txt' file
+    PSOlog <- read.table(file = "PSO_logfile.txt", skip = 9, nrows = 1)
+    MinMax <- as.character(PSOlog[1, 3])
+    if (verbose) message("[ 'MinMax' was read from the 'PSO_logfile.txt' file, and set to '", MinMax, "' ]")
+  } # ELSE end
 
   # Checking 'beh.thr'
-  if ( !is.na(beh.thr) ) {
-     if ( is.null(MinMax) ) {
-        warning("Missing argument: 'MinMax' has to be provided before using 'beh.thr' !!")  
-     } # IF end
+  if (!is.na(beh.thr)) {
+    if (is.null(MinMax)) {
+      warning("Missing argument: 'MinMax' has to be provided before using 'beh.thr' !!")
+    } # IF end
   } # IF end
-  
+
   # Checking 'plot' and 'MinMax'
-  valid.types <- c("corr", "ts") 
-  if (plot &  (length(which(!is.na(match(ptype, valid.types )))) <= 0) ) {
+  valid.types <- c("corr", "ts")
+  if (plot & (length(which(!is.na(match(ptype, valid.types)))) <= 0)) {
     if (is.null(MinMax)) {
       warning("Missing argument: 'MinMax' has to be provided before plotting when 'ptype' is in c('corr', 'ts') => 'plot=FALSE'")
       plot <- FALSE
@@ -105,82 +107,90 @@ read_out <- function(file="Model_out.txt",
   ##############################################################################
 
   # Reading the file
-  if (verbose) message( "                                                     ")  
-  if (verbose) message( "[ Reading the file '", basename(file), "' ... ]" )  
+  if (verbose) message("                                                     ")
+  if (verbose) message("[ Reading the file '", basename(file), "' ... ]")
   if (!missing(nsim)) {
-    cnames <- paste("sim", 1:nsim, sep="") 
-    cnames <- c("Iter", "Part", "GoF", cnames)      
-    sim  <- data.table::fread(file=file, header=FALSE, skip=1, fill=TRUE,  col.names=cnames, data.table=FALSE)
-  } else sim  <- data.table::fread(file=file, header=FALSE, skip=1, fill=TRUE, data.table=FALSE)
+    cnames <- paste("sim", 1:nsim, sep = "")
+    cnames <- c("Iter", "Part", "GoF", cnames)
+    sim <- data.table::fread(file = file, header = FALSE, skip = 1, fill = TRUE, col.names = cnames, data.table = FALSE)
+  } else {
+    sim <- data.table::fread(file = file, header = FALSE, skip = 1, fill = TRUE, data.table = FALSE)
+  }
 
-  # Amount of total model outputs / parameter sets 
+  # Amount of total model outputs / parameter sets
   nouts <- nrow(sim)
-  if (verbose) message( "[ Total number of parameter sets: ", nouts, " ]" )       
-  
+  if (verbose) message("[ Total number of parameter sets: ", nouts, " ]")
+
   # computing the number of columns in 'file'
-  ncols <- ncol(sim)  
-  
+  ncols <- ncol(sim)
+
   # Getting the GoF for each particle and iteration
   gofs <- sim[, 3]
 
   # Getting the Model Outputs for each particle and iteration
   outputs <- sim[, 4:ncols]
-  
+
   # Computing the number of values in each model output
-  lnsim  <- NCOL(outputs)
-  if (verbose) message( "[ Number of model outputs for each parameter set ('nsim'): ", lnsim, " ]" )    
-  
+  lnsim <- NCOL(outputs)
+  if (verbose) message("[ Number of model outputs for each parameter set ('nsim'): ", lnsim, " ]")
+
   # giving more meaningful names to the model outputs
-  if (lnsim > 1)
-    colnames(outputs) <- paste("Sim", 1:lnsim, sep="")
-  
+  if (lnsim > 1) {
+    colnames(outputs) <- paste("Sim", 1:lnsim, sep = "")
+  }
+
   # If the user only wants some columns of the model output file
   if (!is.null(modelout.cols)) {
     outputs <- outputs[, modelout.cols]
-    
-    lnsim  <- NCOL(outputs)
-    if (verbose) message( "[ Number of extracted model outputs for each parameter set: ", lnsim, " ]" ) 
-  } # IF end   
-  
-  # Filtering out those parameter sets above/below a certain threshold
-  if (!is.na(beh.thr)) {  
-     # Checking 'beh.thr'
-     mx <- max(gofs, na.rm=TRUE)
-      if (beh.thr > mx)
-       stop("Invalid argument: 'beh.thr' must be lower than ", mx ,"!!")
-    
-    # Computing the row index of the behavioural parameter sets
-    ifelse(MinMax=="min", beh.row.index <- which(gofs <= beh.thr), 
-                          beh.row.index <- which(gofs >= beh.thr) )
-    
-    # Removing non-behavioural parameter sets and gofs
-    if ( is.matrix(outputs) | is.data.frame(outputs) ) {
-      outputs <- outputs[beh.row.index, ]
-    } else outputs <- outputs[beh.row.index]
-    gofs <- gofs[beh.row.index]
-   
-    # Amount of behavioural parameter sets 
-    nbeh <- nrow(outputs)
-    if (verbose) message( "[ Number of behavioural model outputs           : ", nbeh, " ]" ) 
-    
+
+    lnsim <- NCOL(outputs)
+    if (verbose) message("[ Number of extracted model outputs for each parameter set: ", lnsim, " ]")
   } # IF end
-  
+
+  # Filtering out those parameter sets above/below a certain threshold
+  if (!is.na(beh.thr)) {
+    # Checking 'beh.thr'
+    mx <- max(gofs, na.rm = TRUE)
+    if (beh.thr > mx) {
+      stop("Invalid argument: 'beh.thr' must be lower than ", mx, "!!")
+    }
+
+    # Computing the row index of the behavioural parameter sets
+    ifelse(MinMax == "min", beh.row.index <- which(gofs <= beh.thr),
+      beh.row.index <- which(gofs >= beh.thr)
+    )
+
+    # Removing non-behavioural parameter sets and gofs
+    if (is.matrix(outputs) | is.data.frame(outputs)) {
+      outputs <- outputs[beh.row.index, ]
+    } else {
+      outputs <- outputs[beh.row.index]
+    }
+    gofs <- gofs[beh.row.index]
+
+    # Amount of behavioural parameter sets
+    nbeh <- nrow(outputs)
+    if (verbose) message("[ Number of behavioural model outputs           : ", nbeh, " ]")
+  } # IF end
+
   # Selecting best model output
-  if ( !is.null(MinMax) ) {
-    ifelse(MinMax=="min", best.row.index <- which.min(gofs), 
-                          best.row.index <- which.max(gofs) )
-    if ( is.matrix(outputs) | is.data.frame(outputs) ) {
-      best <- as.numeric(outputs[best.row.index, ]) 
-    } else best <- as.numeric(outputs[best.row.index])
-    
+  if (!is.null(MinMax)) {
+    ifelse(MinMax == "min", best.row.index <- which.min(gofs),
+      best.row.index <- which.max(gofs)
+    )
+    if (is.matrix(outputs) | is.data.frame(outputs)) {
+      best <- as.numeric(outputs[best.row.index, ])
+    } else {
+      best <- as.numeric(outputs[best.row.index])
+    }
+
     # If the user only wants some columns of the model output file
     if (!is.null(modelout.cols)) best <- best[modelout.cols]
-    
   } else {
-      best <- NA
-      plot <- FALSE
-      if (verbose) warning("[ Note: You didn't provide 'MinMax' => model.best=NA & some plots will be skipped !! ]")
-    } # ELSE end
+    best <- NA
+    plot <- FALSE
+    if (verbose) warning("[ Note: You didn't provide 'MinMax' => model.best=NA & some plots will be skipped !! ]")
+  } # ELSE end
 
   ##############################################################################
   # 3)                        Getting Observed Values                          #
@@ -189,72 +199,74 @@ read_out <- function(file="Model_out.txt",
   if (missing(obs)) {
     fname <- "Observations.txt"
     if (file.exists(fname)) {
-       if  ( length(find.package("zoo", quiet=TRUE)) != 0 ) {
-        obs   <- read.zoo(fname) # zoo::read.zoo
+      if (length(find.package("zoo", quiet = TRUE)) != 0) {
+        obs <- read.zoo(fname) # zoo::read.zoo
         dates <- time(obs)
         # If the observed data do not have dates, they are transformed into numeric
-        if ( TRUE && !(class(dates) %in% c("Date", "POSIXct", "POSIXt")) ) obs <- coredata(obs)
+        if (TRUE && !(class(dates) %in% c("Date", "POSIXct", "POSIXt"))) obs <- coredata(obs)
       } else {
-        obs <- read.table(fname, header=FALSE, skip=0)  
+        obs <- read.table(fname, header = FALSE, skip = 0)
         # skippping the column with the index
-        obs <- obs[,1]
-      } # ELSE end 
-      
+        obs <- obs[, 1]
+      } # ELSE end
+
       # If the user only wants some columns of the model output file
       if (!is.null(modelout.cols)) {
-        obs   <- obs[modelout.cols]
-        dates <- dates[modelout.cols] 
+        obs <- obs[modelout.cols]
+        dates <- dates[modelout.cols]
       } # IF end
-  
-    } else obs <- NA
+    } else {
+      obs <- NA
+    }
   } # IF end
 
   # Checking length(obs)
-  if ( !is.null(obs) & is.numeric(obs) ) {
-    if ( length(obs) != lnsim ) 
+  if (!is.null(obs) & is.numeric(obs)) {
+    if (length(obs) != lnsim) {
       stop("Invalid argument: 'length(obs) != ncol(sims)' ", length(obs), "!=", lnsim, " !!")
+    }
   } # IF end
-  
+
   ##############################################################################
   # 4)                            Output                                       #
-  ##############################################################################  
+  ##############################################################################
   # creating the output
-  out <- list(model.values=outputs, model.gofs=gofs, model.best=best, model.obs=obs)
+  out <- list(model.values = outputs, model.gofs = gofs, model.best = best, model.obs = obs)
 
   ##############################################################################
   # 5)                            Plotting                                     #
   ##############################################################################
-  if ( plot & is.numeric(obs) ) {
-  
-       plot_out(sim=best, 
-                obs=obs, 
-                dates=dates, 
-                ptype=ptype, 
-                MinMax=MinMax, 
-                ftype=ftype, # OPTIONAL, only used when 'ptype=="ts"'.See [hydroGOF]{ggof}
-                FUN=FUN,     # OPTIONAL, only used when 'ptype=="ts"'.See [hydroGOF]{ggof}
-                verbose=verbose,
-                #### OPTIONS for ptype="quant2ecdf' #####
-                weights=weights,
-                byrow=byrow, 
-                quantiles.desired= quantiles.desired,
-                quantiles.labels= quantiles.labels,
-                main=main,
-                ylab=ylab,
-                col=col,
-                leg.cex=leg.cex,
-                leg.pos=leg.pos,
-                cex.axis=cex.axis, 
-                cex.main=cex.main, 
-                cex.lab=cex.lab,                     
-                #### PNG options ### 
-                do.png=do.png, 
-                png.width=png.width, 
-                png.height=png.height, 
-                png.res=png.res,
-                png.fname=png.fname)
+  if (plot & is.numeric(obs)) {
+    plot_out(
+      sim = best,
+      obs = obs,
+      dates = dates,
+      ptype = ptype,
+      MinMax = MinMax,
+      ftype = ftype, # OPTIONAL, only used when 'ptype=="ts"'.See [hydroGOF]{ggof}
+      FUN = FUN, # OPTIONAL, only used when 'ptype=="ts"'.See [hydroGOF]{ggof}
+      verbose = verbose,
+      #### OPTIONS for ptype="quant2ecdf' #####
+      weights = weights,
+      byrow = byrow,
+      quantiles.desired = quantiles.desired,
+      quantiles.labels = quantiles.labels,
+      main = main,
+      ylab = ylab,
+      col = col,
+      leg.cex = leg.cex,
+      leg.pos = leg.pos,
+      cex.axis = cex.axis,
+      cex.main = cex.main,
+      cex.lab = cex.lab,
+      #### PNG options ###
+      do.png = do.png,
+      png.width = png.width,
+      png.height = png.height,
+      png.res = png.res,
+      png.fname = png.fname
+    )
   } # IF end
-  
+
   return(out)
-  
-}  # 'read_out' END
+} # 'read_out' END

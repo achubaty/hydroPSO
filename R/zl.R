@@ -6,10 +6,9 @@
 # Distributed under GPL 2 or later
 
 .onAttach <- function(libname, pkgname) {
-
-  packageStartupMessage("(C) 2011-2020 M. Zambrano-Bigiarini and R. Rojas (GPL >=2 license)\n",
-                         "Type 'citation('hydroPSO')' to see how to cite this package")
+  packageStartupMessage(
+    "(C) 2011-2020 M. Zambrano-Bigiarini and R. Rojas (GPL >=2 license)\n",
+    "Type 'citation('hydroPSO')' to see how to cite this package"
+  )
   invisible()
-    
 } # '.onAttach' END
-

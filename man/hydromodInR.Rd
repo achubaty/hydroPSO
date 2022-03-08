@@ -17,7 +17,7 @@ This function takes an R-based user-defined model, a matrix/data.frame with many
 This function it was designed to run a model implemented as an R function, not an executable file that runs in the system console.
 }
 \usage{
-hydromodInR(part, Particles, model.FUN, model.FUN.args )
+hydromodInR(part, Particles, model.FUN, model.FUN.args)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -30,11 +30,11 @@ It has as many columns as parameters used by the model and as many rows as param
 }
   \item{model.FUN}{
 character, valid R function representing the model code to be calibrated/optimised.
-} 
+}
   \item{model.FUN.args}{
 list with the arguments to be passed to \code{model.FUN}.
-} 
-  
+}
+
 %%  \item{\dots}{
 %%     ~~Describe \code{\dots} here~~
 %%}
@@ -43,7 +43,7 @@ list with the arguments to be passed to \code{model.FUN}.
 %%  ~~ If necessary, more details than the description above ~~
 %%}
 \value{
-This function MUST return a list with two elements: 
+This function MUST return a list with two elements:
 \item{sim}{numeric, with the simulated values obtained by running the model}
 \item{GoF}{numeric, goodness-of-fit value representing how close each one of the simulated values in \code{sim} are to their observed counterparts, by using the USER-DEFINED \code{gof.FUN} function}
 }

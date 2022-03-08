@@ -1,17 +1,17 @@
 # File read_results.R
-	# Part of the hydroPSO R package, https://github.com/hzambran/hydroPSO
+# Part of the hydroPSO R package, https://github.com/hzambran/hydroPSO
 #                                 http://cran.r-project.org/web/packages/hydroPSO
 #                                 http://www.rforge.net/hydroPSO/
 # Copyright 2010-2020 Mauricio Zambrano-Bigiarini & Rodrigo Rojas
 # Distributed under GPL 2 or later
 
 ################################################################################
-#                         'read_results'                                       # 
+#                         'read_results'                                       #
 ################################################################################
-# Author : Mauricio Zambrano-Bigiarini & Rodrigo Rojas                         #  
+# Author : Mauricio Zambrano-Bigiarini & Rodrigo Rojas                         #
 # Started: 09-Nov-2011,                                                        #
-# Updates: 13-Jan-2012 ; 23-Feb-2012 ; 06-Dec-2012                             #    
-#          28-Feb-2020                                                         #    
+# Updates: 13-Jan-2012 ; 23-Feb-2012 ; 06-Dec-2012                             #
+#          28-Feb-2020                                                         #
 ################################################################################
 # Purpose:                                                                     #
 # This funtion read the following output files of hydroPSO:                    #
@@ -37,7 +37,7 @@
 #                optimisation                                                  #
 # 4) gofs      : numeric with all the fitness values computed during the       #
 #                optimisation (each elment in 'gofs' corresponds to one row of #
-#                'params')                                                     #                                                                
+#                'params')                                                     #
 # 5) model.values:numeric or matrix/data.frame with the values of the objective#
 #                 function / model for each particle and iteration             #
 # 6) convergence.measures: matrix/data.frame with the convergence measues.     #
@@ -46,92 +46,97 @@
 #                          all the particles during all the iterations         #
 ################################################################################
 
-read_results <- function(drty.out="PSO.out",
-                         MinMax=NULL, 
-                         beh.thr=NA, 
-                         modelout.cols=NULL, # 'read_out' , 'plot_out' argument
-                         nsim=NULL,          # 'read_out' argument
-                         verbose=TRUE) {
+read_results <- function(drty.out = "PSO.out",
+                         MinMax = NULL,
+                         beh.thr = NA,
+                         modelout.cols = NULL, # 'read_out' , 'plot_out' argument
+                         nsim = NULL, # 'read_out' argument
+                         verbose = TRUE) {
 
-   ########################       Checkings      ###############################
-   # Checking 'MinMax'
-   if ( !is.null(MinMax) ) {
-      if ( !(MinMax %in% c("min", "max")) )
-         stop("Invalid argument: 'MinMax' must be in c('min', 'max')")
-   } else { # MinMax was not provided: it is read from the output 'PSO_logfile.txt' file
-           # It assumes that 'PSO_logfile.txt' is located in the same directory than the 'Model_out.txt' file
-       fname  <- paste0(drty.out, "/PSO_logfile.txt")
-       PSOlog <- read.table(file=fname, skip=9, nrows=1)
-       MinMax <- as.character(PSOlog[1, 3])
-       if (verbose) message("[ 'MinMax' was read from the 'PSO_logfile.txt' file, and set to '", MinMax, "' ]")
-     } # ELSE end
-   
-   # Checking 'beh.thr'
-   if ( !is.na(beh.thr) ) {
-      if ( is.null(MinMax) )
-         stop("Missing argument: 'MinMax' has to be provided before using 'beh.thr' !!")  
-   } # IF end
-  
-   
-   # Full path to 'drty.out'
-   if (basename(drty.out) == drty.out) 
-     drty.out <- paste(getwd(), "/", drty.out, sep="")
-   
-   ######################## I) Reading #########################################
+  ########################       Checkings      ###############################
+  # Checking 'MinMax'
+  if (!is.null(MinMax)) {
+    if (!(MinMax %in% c("min", "max"))) {
+      stop("Invalid argument: 'MinMax' must be in c('min', 'max')")
+    }
+  } else { # MinMax was not provided: it is read from the output 'PSO_logfile.txt' file
+    # It assumes that 'PSO_logfile.txt' is located in the same directory than the 'Model_out.txt' file
+    fname <- paste0(drty.out, "/PSO_logfile.txt")
+    PSOlog <- read.table(file = fname, skip = 9, nrows = 1)
+    MinMax <- as.character(PSOlog[1, 3])
+    if (verbose) message("[ 'MinMax' was read from the 'PSO_logfile.txt' file, and set to '", MinMax, "' ]")
+  } # ELSE end
 
-   # Working directory
-   wd.bak <- getwd()   
-   setwd(drty.out)
-   on.exit(setwd(wd.bak))
+  # Checking 'beh.thr'
+  if (!is.na(beh.thr)) {
+    if (is.null(MinMax)) {
+      stop("Missing argument: 'MinMax' has to be provided before using 'beh.thr' !!")
+    }
+  } # IF end
 
-   if (verbose) message("[                                               ]")
-   if (verbose) message("[         Reading output files ...              ]")
-   if (verbose) message("[                                               ]")
-   
-   
-   # 1) File "BestParameterSet.txt"       
-   #best       <- read_best()     
-   #best.param <- best[["best.param.values"]]  
-   #best.gof   <- best[["best.param.gof"]]
-   
-   # 2) File "Particles.txt"
-   part       <- read_particles(MinMax=MinMax, beh.thr=beh.thr, plot=FALSE)     
-   params     <- part[["part.params"]]  
-   gofs       <- part[["part.gofs"]] 
-   best.param <- part[["best.param"]]  
-   best.gof   <- part[["best.gof"]]
-   
-   # 3) File "Velocities.txt"        
-   veloc      <- read_velocities(MinMax=MinMax, beh.thr=beh.thr, plot=FALSE)     
-   velocities <- veloc[["velocities"]]  
-   
-   # 4) File "Model_out.txt"        
-   out <- read_out(modelout.cols=modelout.cols, MinMax=MinMax, 
-                   beh.thr=beh.thr, verbose=verbose, plot=FALSE)     
-   model.values <- out[["model.values"]]
-   model.best   <- out[["model.best"]]    
-   model.obs    <- out[["model.obs"]]
-   
-   # 5) File "ConvergenceMeasures.txt"        
-   conv <- read_convergence(MinMax=MinMax, beh.thr=beh.thr, plot=FALSE)   
-   
-   # 6) File "Particles_GofPerIter.txt'        
-   Particles.GofPerIter <- read_GofPerParticle(plot=FALSE)
-   
-   # Creating the final output
-   out <- list(best.param=best.param,
-               best.gof=best.gof,
-               params=params,
-               gofs=gofs,
-               velocities=velocities,
-               model.values=model.values,
-               model.best=model.best,
-               model.obs=model.obs,
-               convergence.measures=conv,
-               part.GofPerIter=Particles.GofPerIter
-               )
-   
-   # Output
-   return(out)   
-         
+
+  # Full path to 'drty.out'
+  if (basename(drty.out) == drty.out) {
+    drty.out <- paste(getwd(), "/", drty.out, sep = "")
+  }
+
+  ######################## I) Reading #########################################
+
+  # Working directory
+  wd.bak <- getwd()
+  setwd(drty.out)
+  on.exit(setwd(wd.bak))
+
+  if (verbose) message("[                                               ]")
+  if (verbose) message("[         Reading output files ...              ]")
+  if (verbose) message("[                                               ]")
+
+
+  # 1) File "BestParameterSet.txt"
+  # best       <- read_best()
+  # best.param <- best[["best.param.values"]]
+  # best.gof   <- best[["best.param.gof"]]
+
+  # 2) File "Particles.txt"
+  part <- read_particles(MinMax = MinMax, beh.thr = beh.thr, plot = FALSE)
+  params <- part[["part.params"]]
+  gofs <- part[["part.gofs"]]
+  best.param <- part[["best.param"]]
+  best.gof <- part[["best.gof"]]
+
+  # 3) File "Velocities.txt"
+  veloc <- read_velocities(MinMax = MinMax, beh.thr = beh.thr, plot = FALSE)
+  velocities <- veloc[["velocities"]]
+
+  # 4) File "Model_out.txt"
+  out <- read_out(
+    modelout.cols = modelout.cols, MinMax = MinMax,
+    beh.thr = beh.thr, verbose = verbose, plot = FALSE
+  )
+  model.values <- out[["model.values"]]
+  model.best <- out[["model.best"]]
+  model.obs <- out[["model.obs"]]
+
+  # 5) File "ConvergenceMeasures.txt"
+  conv <- read_convergence(MinMax = MinMax, beh.thr = beh.thr, plot = FALSE)
+
+  # 6) File "Particles_GofPerIter.txt'
+  Particles.GofPerIter <- read_GofPerParticle(plot = FALSE)
+
+  # Creating the final output
+  out <- list(
+    best.param = best.param,
+    best.gof = best.gof,
+    params = params,
+    gofs = gofs,
+    velocities = velocities,
+    model.values = model.values,
+    model.best = model.best,
+    model.obs = model.obs,
+    convergence.measures = conv,
+    part.GofPerIter = Particles.GofPerIter
+  )
+
+  # Output
+  return(out)
 } # 'read_results' END

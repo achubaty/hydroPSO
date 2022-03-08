@@ -18,41 +18,38 @@
 #          27-Jan-2021                                                         #
 ################################################################################
 
-ModifyInputFile <- function(
-                            ParamID,    # character, with the ID of the parameter to be modified (only used for visualization purposes)
-                            newvalue,   # numeric value to be written into the text file
-                            filename,   # character, with the name of the text file that will be modified
-                            row,        # numeric, with the row number in \code{filename} where \code{newvalue} will be written
-                            col.ini,    # numeric, with the starting column number in \code{filename} where \code{newvalue} is going to be written.
-                            col.fin,    # numeric, with the ending column number in \code{filename} where \code{newvalue} is going to be written.
-                            decimals,   # numeric, with the number of decimal places used to write \code{newvalue} into \code{filename}
-                            change.type=c("repl", "addi", "mult"), # character, specification of the type of parameter modification ("repl", "mult", "addi")
-                            refValue,   # numeric, only used when TypeChange == "mult" |  TypeChange == "addi", reference value for making de parameter modification
-                            minValue, 
+ModifyInputFile <- function(ParamID, # character, with the ID of the parameter to be modified (only used for visualization purposes)
+                            newvalue, # numeric value to be written into the text file
+                            filename, # character, with the name of the text file that will be modified
+                            row, # numeric, with the row number in \code{filename} where \code{newvalue} will be written
+                            col.ini, # numeric, with the starting column number in \code{filename} where \code{newvalue} is going to be written.
+                            col.fin, # numeric, with the ending column number in \code{filename} where \code{newvalue} is going to be written.
+                            decimals, # numeric, with the number of decimal places used to write \code{newvalue} into \code{filename}
+                            change.type = c("repl", "addi", "mult"), # character, specification of the type of parameter modification ("repl", "mult", "addi")
+                            refValue, # numeric, only used when TypeChange == "mult" |  TypeChange == "addi", reference value for making de parameter modification
+                            minValue,
                             maxValue,
-                            verbose=TRUE) {
-  
-  
-
+                            verbose = TRUE) {
   change.type <- match.arg(change.type)
 
-  if (!file.exists(filename))
-    stop( paste("Invalid argument: the file '", filename, "' doesn't exist!", sep="") )
-  
+  if (!file.exists(filename)) {
+    stop(paste("Invalid argument: the file '", filename, "' doesn't exist!", sep = ""))
+  }
+
   old.op <- options()
-  options(scipen=999)
+  options(scipen = 999)
 
-  if(change.type == "repl"){ # actual value is replaced by new value    
-    newvalue <- newvalue     
-  } else if(change.type == "addi"){ # additive change    
-      newvalue <- newvalue + refValue   
-      newvalue <- max(c(min(c(newvalue, maxValue)), minValue))    
-    }  else if(change.type == "mult"){ # multiplicative change    
-         newvalue <- newvalue * refValue   
-         newvalue <- max(c(min(c(newvalue, maxValue)), minValue))    
-       } # ELSE end  
+  if (change.type == "repl") { # actual value is replaced by new value
+    newvalue <- newvalue
+  } else if (change.type == "addi") { # additive change
+    newvalue <- newvalue + refValue
+    newvalue <- max(c(min(c(newvalue, maxValue)), minValue))
+  } else if (change.type == "mult") { # multiplicative change
+    newvalue <- newvalue * refValue
+    newvalue <- max(c(min(c(newvalue, maxValue)), minValue))
+  } # ELSE end
 
-  lines  <- readLines(filename)
+  lines <- readLines(filename)
 
   myline <- lines[row]
 
@@ -61,35 +58,36 @@ ModifyInputFile <- function(
   newvalue.stg <- as.character(round(newvalue, decimals))
 
   L <- nchar(newvalue.stg)
-  
-#  message("ParamID  : ", ParamID)
-#  message("filename : ", basename(filename))
-#  message("row      : ", row)
-#  message("new value: ", newvalue.stg)
-#  message("L.trg    : ", L.trg)
 
-  if (L < L.trg) newvalue.stg <- format(newvalue, justify="right", width=L.trg, nsmall=decimals)  
-  
+  #  message("ParamID  : ", ParamID)
+  #  message("filename : ", basename(filename))
+  #  message("row      : ", row)
+  #  message("new value: ", newvalue.stg)
+  #  message("L.trg    : ", L.trg)
+
+  if (L < L.trg) newvalue.stg <- format(newvalue, justify = "right", width = L.trg, nsmall = decimals)
+
   if (L > L.trg) {
-     #newvalue.stg <- format(newvalue, justify="right", width=L.trg, scientific=TRUE)
-     #e.pos <- which(strsplit(newvalue.stg, split=character(0))[[1]] == "e")
-     #newvalue.stg <- format(newvalue, justify="right", width=L.trg, scientific=TRUE, digits=e.pos-1)
-     nexp <- 2
-     if (abs(newvalue) >= 1E100) nexp <- 3
-     dig          <- max(decimals-(L - L.trg)-3-nexp, 0) 
-     suppressWarnings(
-       newvalue.stg <- formatC(newvalue, width=L.trg, format="E", digits=dig)
-     )
-  } # IF end 
-   
+    # newvalue.stg <- format(newvalue, justify="right", width=L.trg, scientific=TRUE)
+    # e.pos <- which(strsplit(newvalue.stg, split=character(0))[[1]] == "e")
+    # newvalue.stg <- format(newvalue, justify="right", width=L.trg, scientific=TRUE, digits=e.pos-1)
+    nexp <- 2
+    if (abs(newvalue) >= 1E100) nexp <- 3
+    dig <- max(decimals - (L - L.trg) - 3 - nexp, 0)
+    suppressWarnings(
+      newvalue.stg <- formatC(newvalue, width = L.trg, format = "E", digits = dig)
+    )
+  } # IF end
+
   substr(myline, col.ini, col.fin) <- newvalue.stg
 
   lines[row] <- myline
 
   writeLines(lines, filename)
 
-  if (verbose)
-   message( paste("[", ParamID, ": '", round(newvalue,5), "' was successfully put into '", basename(filename), "']", sep="") )
+  if (verbose) {
+    message(paste("[", ParamID, ": '", round(newvalue, 5), "' was successfully put into '", basename(filename), "']", sep = ""))
+  }
 
-  options(old.op)     # reset (all) initial options
+  options(old.op) # reset (all) initial options
 } # 'ModifyInputFile' END

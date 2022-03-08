@@ -17,63 +17,62 @@
 #              27-Jan-2021                                                     #
 ################################################################################
 ParameterValues2InputFiles <- function(NewValues,
-                                       ParamFiles.fname="ParamFiles.txt",
-                                       verbose=TRUE
-                                       ) {
+                                       ParamFiles.fname = "ParamFiles.txt",
+                                       verbose = TRUE) {
 
   # Checking 'NewValues'
-  if ( is.na( match(class(NewValues), c("numeric", "integer") ) ) )
-    stop("Invalid argument: class(NewValues) has to be in c('numeric', 'integer')") 
-  
+  if (is.na(match(class(NewValues), c("numeric", "integer")))) {
+    stop("Invalid argument: class(NewValues) has to be in c('numeric', 'integer')")
+  }
+
   # Number of values provided by the user
   nval <- length(NewValues)
-  
+
   # Reading the file with the location of the paramters
-  ParamFiles <-  read.paramfile(file=ParamFiles.fname)
-  
-  n1 <- length(levels(as.factor(ParamFiles[,1]))) # Number of Param IDs
-  n2 <- length(levels(as.factor(ParamFiles[,2]))) # Number of Param Names
-  if ( n1 != n2)
-    stop( paste("In '", ParamFiles.fname, "' : Number of 'ParameterNmbr' != Number of 'ParameterName' (", n1, " != ", n2, ")", sep="" ) ) 
-  if ( n1 != nval)
-    stop( paste("Number of Parameters != Number of Values' (", n1, " != ", nval, ")", sep="" ) )
-       
+  ParamFiles <- read.paramfile(file = ParamFiles.fname)
+
+  n1 <- length(levels(as.factor(ParamFiles[, 1]))) # Number of Param IDs
+  n2 <- length(levels(as.factor(ParamFiles[, 2]))) # Number of Param Names
+  if (n1 != n2) {
+    stop(paste("In '", ParamFiles.fname, "' : Number of 'ParameterNmbr' != Number of 'ParameterName' (", n1, " != ", n2, ")", sep = ""))
+  }
+  if (n1 != nval) {
+    stop(paste("Number of Parameters != Number of Values' (", n1, " != ", nval, ")", sep = ""))
+  }
+
   # Number of files that have to be changed
   nfiles <- nrow(ParamFiles)
 
   # Loop in all the files that have to be changed
   for (i in 1:nfiles) {
+    ParamID <- ParamFiles[i, 1]
+    ParamName <- ParamFiles[i, 2]
+    filename <- ParamFiles[i, 3]
+    lrow <- ParamFiles[i, 4]
+    col.ini <- ParamFiles[i, 5]
+    col.fin <- ParamFiles[i, 6]
+    decimals <- ParamFiles[i, 7]
 
-    ParamID    <- ParamFiles[i,1]
-    ParamName  <- ParamFiles[i,2]
-    filename   <- ParamFiles[i,3]
-    lrow       <- ParamFiles[i,4]
-    col.ini    <- ParamFiles[i,5]
-    col.fin    <- ParamFiles[i,6]
-    decimals   <- ParamFiles[i,7]
-    
-    if(ncol(ParamFiles) >= 11){
-      change.type <- ParamFiles[i,8] # character, specification of the type of parameter modification ("repl", "mult", "addi")
-      refValue    <- ParamFiles[i,9] # numeric, only used when TypeChange == "mult" |  TypeChange == "addi", reference value for making de parameter modification
-      minValue    <- ParamFiles[i,10]
-      maxValue    <- ParamFiles[i,11]
-    }else{
+    if (ncol(ParamFiles) >= 11) {
+      change.type <- ParamFiles[i, 8] # character, specification of the type of parameter modification ("repl", "mult", "addi")
+      refValue <- ParamFiles[i, 9] # numeric, only used when TypeChange == "mult" |  TypeChange == "addi", reference value for making de parameter modification
+      minValue <- ParamFiles[i, 10]
+      maxValue <- ParamFiles[i, 11]
+    } else {
       change.type <- "repl"
-      refValue   <- 0
-      minValue   <- 0
-      maxValue   <- 0
-      
+      refValue <- 0
+      minValue <- 0
+      maxValue <- 0
     }
-    
-    ModifyInputFile(ParamID=ParamName, newvalue= NewValues[ParamID], 
-                    filename=filename, row=lrow, col.ini= col.ini, col.fin=col.fin, decimals=decimals, 
-                    change.type=change.type, refValue=refValue, minValue=minValue, maxValue=maxValue,
-                    verbose=verbose)
- 
+
+    ModifyInputFile(
+      ParamID = ParamName, newvalue = NewValues[ParamID],
+      filename = filename, row = lrow, col.ini = col.ini, col.fin = col.fin, decimals = decimals,
+      change.type = change.type, refValue = refValue, minValue = minValue, maxValue = maxValue,
+      verbose = verbose
+    )
   } # FOR end
-              
-  
 } # 'ParameterValues2InputFiles' end
 
 
-#ParameterValues2InputFiles( NewValues=c(100.111, 200.122, 300.133), ParamFiles.fname="./PSO/ParamFiles.txt" )
+# ParameterValues2InputFiles( NewValues=c(100.111, 200.122, 300.133), ParamFiles.fname="./PSO/ParamFiles.txt" )
